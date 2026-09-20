@@ -1,0 +1,178 @@
+Проверить, что docker демон запущен:
+docker info
+
+Без длинного вывода:
+docker info > /dev/null 2>&1 && echo "Docker OK" || echo "Docker НЕ работает"
+
+# Статус
+sudo systemctl status docker
+
+# Ожидаемо:
+#   ● docker.service - Docker Application Container Engine
+#      Active: active (running) since ...
+
+Запустить докер:
+db_hiber_inno/docker$ docker compose -f docker-compose.yml up -d
+
+Ответ такой:  ✔ Image prom/prometheus:v2.54.1 Pulled                                                                                                                                                  20.9s
+              ✔ Image grafana/grafana:11.1.0  Pulled                                                                                                                                                   7.9s
+              ✔ Image postgres:16-alpine      Pulled                                                                                                                                                  18.1s
+              ✔ Image dpage/pgadmin4:latest   Pulled                                                                                                                                                  15.9s
+              ✔ Volume docker_grafana_data    Created                                                                                                                                                  0.0s
+              ✔ Volume docker_pgadmin_data    Created                                                                                                                                                  0.0s
+              ✔ Volume docker_postgres_data   Created                                                                                                                                                  0.0s
+              ✔ Network docker_library-net    Created                                                                                                                                                  0.0s
+              ✔ Volume docker_prometheus_data Created
+
+
+# Все запущенные
+docker ps
+
+# Все (включая остановленные)
+docker ps -a
+
+# Только имена и порты
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+# Статус
+docker inspect --format='{{.State.Status}}' library-postgres
+# → running
+
+# Health
+docker inspect --format='{{.State.Health.Status}}' library-postgres
+# → healthy
+
+# IP внутри сети
+docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' library-postgres
+
+Проверить, что БД реально отвечает:
+docker exec -it library-postgres pg_isready -U library -d library
+# → localhost:5432 - accepting connections
+
+Или зайти в psql:
+docker exec -it library-postgres psql -U library -d library -c '\l'
+# → список баз, включая library
+
+Проверить логи контейнера:
+# Последние 50 строк
+docker logs --tail 50 library-postgres
+
+# В реальном времени
+docker logs -f library-postgres
+
+# С временными метками
+docker logs -t library-postgres
+
+docker compose -f docker/docker-compose.yml logs -f postgres
+docker compose -f docker/docker-compose.yml logs -f --tail=100
+
+Проверить ресурсы:
+# Использование CPU/RAM по контейнерам
+docker stats
+
+# Без live-обновления
+docker stats --no-stream
+
+# Один контейнер
+docker stats library-postgres --no-stream
+
+ Проверить целостность compose-стека:
+
+cd /home/julia/WorkSpace/WS_2026/db_hiber_inno
+
+# Валидация yml без запуска
+docker compose -f docker/docker-compose.yml config
+
+# Статус сервисов
+docker compose -f docker/docker-compose.yml ps
+
+# Какие образы используются
+docker compose -f docker/docker-compose.yml images
+
+# Логи всех сервисов
+docker compose -f docker/docker-compose.yml logs --tail=50
+
+Полная проверка:
+echo "=== Docker версия ===" && docker --version && \
+echo "=== Compose версия ===" && docker compose version && \
+echo "=== Демон ===" && docker info > /dev/null 2>&1 && echo "OK" || echo "НЕ РАБОТАЕТ" && \
+echo "=== Контейнеры ===" && docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+Выполнить после docker compose up -d):
+
+# 1. Демон жив?
+docker info > /dev/null && echo "Docker OK"
+
+# 2. Контейнеры поднялись?
+cd /home/julia/WorkSpace/WS_2026/db_hiber_inno
+docker compose -f docker/docker-compose.yml ps
+
+# 3. Postgres готов?
+docker exec -it library-postgres pg_isready -U library -d library
+
+# 4. Порт проброшен?
+ss -tlnp | grep 5433
+
+# 5. Приложение видит БД?
+psql -h localhost -p 5433 -U library -d library -c '\dt'
+# (если psql не установлен: docker exec -it library-postgres psql -U library -d library -c '\dt')
+
+-------------------------------
+# Docker жив?
+docker info > /dev/null && echo "Docker OK"
+
+# Все контейнеры?
+docker compose -f docker/docker-compose.yml ps
+
+# Postgres отвечает на 5433?
+docker exec -it library-postgres pg_isready -U library -d library
+
+# Таблицы создались (после старта Spring Boot)?
+docker exec -it library-postgres psql -U library -d library -c '\dt'
+
+# Spring Boot жив?
+curl -s http://localhost:8080/actuator/health
+# → {"status":"UP"}
+
+# Prometheus видит приложение?
+curl -s http://localhost:9090/api/v1/targets | grep -o '"health":"[a-z]*"'
+---------------------
+Запуск spring boot:
+mvn spring-boot:run
+
+# 1. Сбросить кэш путей
+hash -r
+
+# 2. Убедиться, что SDKMAN инициализирован в текущей сессии
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# 3. Проверить, какой mvn теперь резолвится
+which mvn
+# ожидаемо: /home/julia/.sdkman/candidates/maven/current/bin/mvn
+
+# 4. Версия
+mvn -version
+# → Apache Maven 3.9.9, Java 17
+-----------------
+docker compose -f docker/docker-compose.yml down -v   # удалит данные
+docker compose -f docker/docker-compose.yml up -d
+mvn spring-boot:run
+
+
+ # Логи приложения (если запущено через docker — не наш случай)
+ # У нас Spring Boot локально, логи в консоли
+
+ # Посмотреть все контейнеры
+ docker compose -f docker/docker-compose.yml ps
+
+ # Логи контейнера postgres
+ docker compose -f docker/docker-compose.yml logs -f postgres
+
+ # Проверить статус Flyway
+ psql -h localhost -p 5433 -U library -d library -c \
+   "SELECT version, description, success, installed_on FROM flyway_schema_history ORDER BY installed_rank;"
+
+ # Пересобрать без тестов
+ mvn clean package -DskipTests
+
+ # Запустить только тесты
+ mvn test

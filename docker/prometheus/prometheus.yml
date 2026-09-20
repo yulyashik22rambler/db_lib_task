@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    application: library-management
+
+scrape_configs:
+
+  # Метрики Spring Boot Actuator (Micrometer → Prometheus)
+  - job_name: "library-management"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+        labels:
+          env: local
+
+  # Метрики самого Prometheus
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
