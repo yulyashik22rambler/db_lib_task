@@ -176,3 +176,24 @@ mvn spring-boot:run
 
  # Запустить только тесты
  mvn test
+ --------------------------------
+ Доступы после запуска:
+
+ Сервис	URL	Логин / пароль
+ PostgreSQL (контейнер)	localhost:5433	library / library, БД library
+ pgAdmin	http://localhost:5050	admin@library.local / admin
+ Prometheus	http://localhost:9090	—
+ Grafana	http://localhost:3000	admin / admin
+ Spring Boot API	http://localhost:8080	—
+ Swagger UI	http://localhost:8080/swagger-ui.html	—
+ Actuator health	http://localhost:8080/actuator/health	—
+ Actuator prometheus	http://localhost:8080/actuator/prometheus
+ __________________________________
+ Критерий	Решение
+ Нормализация 3NF	junction-таблицы book_authors, book_genres, fines отделены
+ Типы данных	BIGSERIAL, VARCHAR(n), NUMERIC(10,2), DATE, TIMESTAMP, BOOLEAN
+ Constraints	NOT NULL, UNIQUE (isbn, email, library_card, genre.name), CHECK (copies ≥ 0)
+ PK/FK	Суррогатные BIGSERIAL PK, FK с CASCADE/RESTRICT
+ Индексы	title, last_name, reader_id+loan_date, status (partial), junction-таблицы
+ Транзакции	@Transactional(READ_COMMITTED) + PESSIMISTIC_WRITE + rollback
+ ORM	LAZY + JOIN FETCH + @EntityGraph + batch_fetch_size, OSIV выключен

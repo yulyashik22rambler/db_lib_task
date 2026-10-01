@@ -1,0 +1,48 @@
+Итого — карта эндпоинтов под 7 задач ТЗ
+#	Задача	Метод	URL
+1	Все авторы книг	GET	/api/authors
+2	Все книги с автором и жанрами	GET	/api/books
+3	Книги, выданные сейчас	GET	/api/loans/active
+4	Все читатели	GET	/api/readers
+5	Сколько книг взято читателем на дату	GET	/api/readers/{readerId}/loans/count?date=YYYY-MM-DD
+6	История выдачи книги	GET	/api/books/{id}/history
+7	Выдать книгу	POST	/api/loans/issue
+-------------------
+Итого:
+Books:
+GET /api/books Все книги с авторами и жанрами
+POST /api/books Создать книгу
+GET /api/books/{id} Книга по id
+GET /api/books/{id}/history История выдачи книги (все loan-записи)
+GET /api/books/search Поиск книг по названию (подстрока)
+GET /api/books/by-genre Поиск книг по жанру
+GET /api/books/by-author Поиск книг по фамилии автора
+GET /api/books/available Только доступные к выдаче книги
+
+Loans:
+POST /api/loans/return
+Вернуть книгу
+POST /api/loans/issue
+Выдать книгу читателю
+GET /api/loans/active
+Активные выдачи (книги на руках)
+
+Fines:
+POST /api/fines/{fineId}/pay Отметить штраф как оплаченный
+GET /api/fines/unpaid Все неоплаченные штрафы
+GET /api/fines/by-reader/{readerId} Штрафы читателя
+GET /api/fines/by-reader/{readerId}/sum Сумма неоплаченных штрафов читателя
+
+Authors:
+GET /api/authors Все авторы с их книгами
+POST /api/authors Создать автора
+GET /api/authors/{id} Автор по id
+GET /api/authors/search Поиск авторов по фамилии (префикс)
+Readers
+
+Readers:
+GET /api/readers Все читатели
+POST /api/readers Создать читателя
+GET /api/readers/{readerId}/loans/count Сколько книг взято читателем на конкретную дату
+GET /api/readers/{id} Читатель по id
+GET /api/readers/search Поиск читателей по фамилии (подстрока)

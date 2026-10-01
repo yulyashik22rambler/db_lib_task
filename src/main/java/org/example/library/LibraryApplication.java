@@ -6,8 +6,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication
-//@EnableCaching        // для Caffeine (можно убрать, если кэш ещё не настроен)
-//@EnableRetry          // для @Retryable на OptimisticLockException
+@EnableCaching        // для Caffeine (можно убрать, если кэш ещё не настроен)
+@EnableRetry          // для @Retryable на OptimisticLockException
 public class LibraryApplication {
 
     public static void main(String[] args) {

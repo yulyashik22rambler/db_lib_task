@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -13,8 +16,8 @@ import java.util.Set;
 @Entity
 @Table(name = "books",
         indexes = @Index(name = "idx_books_title", columnList = "title"))
-@Getter
-@Setter
+@EntityListeners(AuditingEntityListener.class)
+@Getter @Setter
 @NoArgsConstructor
 public class Book {
     @Id
@@ -38,8 +41,13 @@ public class Book {
 
     private String publisher;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_authors",

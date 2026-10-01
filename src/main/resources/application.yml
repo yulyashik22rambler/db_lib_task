@@ -19,8 +19,20 @@ spring:
     baseline-on-migrate: true    # для существующих БД
   cache:
     type: caffeine
+    cache-names: books,authors,genres
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=10m
+  pringdoc:
+    swagger-ui:
+      path: /swagger-ui.html
+      tags-sorter: alpha
+      operations-sorter: alpha
+
+  logging:
+    level:
+      org.springframework.cache: DEBUG     # видеть, когда кэш hit/miss
+      org.springframework.retry: DEBUG     # видеть попытки retry
+      org.hibernate.tool.schema: DEBUG
 
 management:
   endpoints:
@@ -31,3 +43,5 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+    logging:
+      level:

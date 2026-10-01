@@ -1,0 +1,33 @@
+1. @Transactional(readOnly = true) на классе
+
+Все сервисы аннотированы readOnly = true на уровне класса. Это:
+
+    даёт Hibernate подсказку не делать dirty checking;
+
+    включает оптимизации на уровне JDBC (PostgreSQL переходит в read-only режим);
+
+    защищает от случайных UPDATE.
+
+Методы, которые пишут (createBook, issueBook, returnBook, markPaid), помечены @Transactional без readOnly — переопределяют поведение класса.
+2. @Lock(PESSIMISTIC_WRITE) в findByIdForUpdate
+
+Ключевая защита от overselling. Без неё два потока одновременно прочитают available_copies = 1, оба уменьшат до 0, оба создадут loan — на одну книгу две выдачи.
+
+С FOR UPDATE PostgreSQL блокирует строку: второй поток ждёт, пока первый закоммитит, и видит уже available_copies = 0 → бросает NoAvailableCopiesException.
+3. isolation = READ_COMMITTED + FOR UPDATE
+
+Дефолтная изоляция PostgreSQL — READ_COMMITTED. Этого достаточно с FOR UPDATE: блокировка строки работает независимо от уровня изоляции. SERIALIZABLE был бы избыточен (медленнее, чаще откаты).
+4. rollbackFor = Exception.class
+
+По умолчанию Spring откатывает транзакцию только на RuntimeException и Error. Если в будущем в сервис придёт проверяемое исключение (IOException, SQLException) и вы захотите откатить — нужно явно указать rollbackFor. Я поставил на всякий случай.
+5. BookDto.from(bookRepository.findByIdWithAuthorsAndGenres(...)) после save
+
+После save() возвращается сущность, но её authors/genres — LAZY и не подтянуты (мы их только что заполнили, но Hibernate может не знать). Надёжнее перезагрузить с JOIN FETCH — один запрос, гарантированно корректный DTO.
+6. Двойная проверка «читатель уже держит книгу»
+
+В LoanServiceImpl.issueBook есть findActiveByBookAndReader. Это дублирует partial unique index uq_loans_active_book_reader из V4-миграции — но даёт понятную бизнес-ошибку вместо DataIntegrityViolationException из недр JDBC.
+7. toDtoWithFetch в BookServiceImpl
+
+Поисковые методы (searchByTitle, findByAuthorLastName, findByGenreName) возвращают Book без fetch-коллекций. Если сразу мапить в DTO, получим N+1. Поэтому делаем дополнительный findByIdWithAuthorsAndGenres.
+
+Альтернатива — использовать @EntityGraph в этих методах репозитория. Но при двух M:N-коллекциях @EntityGraph даёт декартово произведение с дублями, что тоже небесплатно.
