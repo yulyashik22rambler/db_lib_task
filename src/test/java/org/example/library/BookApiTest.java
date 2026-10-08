@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.*;
 
 @Epic("Управление каталогом библиотеки")
 @Feature("Авторы и Книги")
-public class BookFuncTest extends BaseFuncTest {
+public class BookApiTest extends BaseFuncTest {
     @Test
     @Story("Поиск доступных книг")
     @Description("Проверяет получение списка книг, доступных к выдаче читателям")

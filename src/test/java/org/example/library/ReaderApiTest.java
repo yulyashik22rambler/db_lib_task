@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.*;
 
 @Epic("Библиотечный сервис")
 @Feature("Читатели библиотеки")
-public class ReaderFuncTest {
+public class ReaderApiTest {
     @Test
     @Story("Просмотр читателей")
     @Description("Проверяет получение полного списка зарегистрированных читателей")

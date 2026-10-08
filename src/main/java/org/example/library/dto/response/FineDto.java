@@ -1,5 +1,6 @@
 package org.example.library.dto.response;
 
+import jakarta.persistence.Column;
 import org.example.library.domain.Fine;
 
 import java.math.BigDecimal;

@@ -38,7 +38,7 @@ public class Fine {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "paid_at", nullable = false, updatable = false)
+    @Column(name = "paid_at")
     private LocalDateTime paidAt = LocalDateTime.now();
 
 }

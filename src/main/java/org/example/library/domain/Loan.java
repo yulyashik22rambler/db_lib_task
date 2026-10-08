@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.example.library.domain.enums.LoanStatus;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import java.util.List;
                 @Index(name = "idx_loans_status", columnList = "status"),
                 @Index(name = "idx_loans_book", columnList = "book_id")
         })
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

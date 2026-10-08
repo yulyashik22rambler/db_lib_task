@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.*;
 
 @Epic("Управление каталогом библиотеки")
 @Feature("Авторы")
-public class AuthorFuncTest extends BaseFuncTest {
+public class AuthorApiTest extends BaseFuncTest {
 
     @Test
     @Story("Создание автора")
@@ -34,7 +34,7 @@ public class AuthorFuncTest extends BaseFuncTest {
         );
 
     //1. Ищем созданного автора
-        Long authorId = given()
+        Integer authorId = given()
                 .body(request)
                 .when()
                 .post("/api/authors")

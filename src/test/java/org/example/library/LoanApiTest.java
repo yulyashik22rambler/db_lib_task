@@ -1,12 +1,18 @@
 package org.example.library;
+
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
+import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.example.library.dto.request.IssueBookRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -14,7 +20,7 @@ import static org.hamcrest.Matchers.*;
 
 @Epic("Библиотечный сервис")
 @Feature("Выдача и возврат книг")
-public class LoanFuncTest {
+public class LoanApiTest {
     @Test
     @Story("Активные выдачи")
     @Description("Проверяет получение списка всех книг, которые находятся на руках у читателей в данный момент")
@@ -33,13 +39,12 @@ public class LoanFuncTest {
     @Description("Проверяет успешное оформление выдачи книги читателю")
     @DisplayName("POST /api/loans/issue — Выдать книгу читателю")
     public void testIssueBook() {
-        Map<String, Object> requestBody = Map.of(
-                "readerId", 1L,
-                "bookId", 5L
-        );
+        IssueBookRequest bookRequest= new IssueBookRequest(2L,
+                Long.parseLong(RandomStringUtils.randomNumeric(1,2)),10);
 
         given()
-                .body(requestBody)
+                .body(bookRequest)
+                .contentType(io.restassured.http.ContentType.JSON)
                 .when()
                 .post("/api/loans/issue")
                 .then()
@@ -52,16 +57,17 @@ public class LoanFuncTest {
     @Description("Проверяет успешное оформление возврата книги в библиотеку")
     @DisplayName("POST /api/loans/return — Вернуть книгу")
     public void testReturnBook() {
+        Integer loanId = 10;//chose with NotReturned status
         Map<String, Object> requestBody = Map.of(
-                "loanId", 2L
-        );
+                "loanId", loanId);
 
         given()
                 .body(requestBody)
+                .contentType(ContentType.JSON)
                 .when()
                 .post("/api/loans/return")
                 .then()
                 .statusCode(200)
-                .body("id", equalTo(2));
+                .body("id", equalTo(loanId));
     }
 }
